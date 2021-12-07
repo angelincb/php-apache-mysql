@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "php-apache-mysql.fullname" . }}-users
+  labels:
+    {{- include "php-apache-mysql.labels" . | nindent 4 }}
+    app: users
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.users.replicaCount }}
+  {{- end }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- include "php-apache-mysql.selectorLabels" . | nindent 6 }}
+      app: users
+  template:
+    metadata:
+      labels:
+        {{- include "php-apache-mysql.selectorLabels" . | nindent 8 }}
+        app: users
+    spec:
+      serviceAccountName: {{ include "php-apache-mysql.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-users
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: index
+            mountPath: /var/www/html/index.php
+            subPath: index.php
+      volumes:
+      - name: index
+        configMap:
+          name: index

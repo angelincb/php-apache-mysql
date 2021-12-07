@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "php-apache-mysql.fullname" . }}-users
+  labels:
+    {{- include "php-apache-mysql.labels" . | nindent 4 }}
+    app: users
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "php-apache-mysql.selectorLabels" . | nindent 4 }}
+    app: users
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "php-apache-mysql.fullname" . }}-shifts
+  labels:
+    {{- include "php-apache-mysql.labels" . | nindent 4 }}
+    app: shifts
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "php-apache-mysql.selectorLabels" . | nindent 4 }}
+    app: shifts
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "php-apache-mysql.fullname" . }}-db
+  labels:
+    {{- include "php-apache-mysql.labels" . | nindent 4 }}
+    app: db
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
+      name: mysql
+  selector:
+    {{- include "php-apache-mysql.selectorLabels" . | nindent 4 }}
+    app: db
